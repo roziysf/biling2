@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,42 +6,66 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
+  Image,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
 type PaymentMethod = {
-  id: string;
+  code: string;
   name: string;
-  category: "qris" | "ewallet" | "virtual";
+  group: string;
+  icon_url: string;
 };
 
 export default function PaymentMethodsScreen() {
   const navigation = useNavigation();
   const route = useRoute<any>();
 
-  // Ambil data dari halaman sebelumnya
   const { speed, price, duration } = route.params;
 
-  const [selectedMethod, setSelectedMethod] = useState<string>("BCA");
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const qrisOptions: PaymentMethod[] = [
-    { id: "QRIS", name: "QRIS", category: "qris" },
-  ];
+  useEffect(() => {
+    fetch("http://192.168.43.233/pkn_ldpp/Api/metods.php")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setMethods(json.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching methods:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const ewalletOptions: PaymentMethod[] = [
-    { id: "DANA", name: "DANA", category: "ewallet" },
-    { id: "OVO", name: "OVO", category: "ewallet" },
-  ];
-
-  const virtualAccountOptions: PaymentMethod[] = [
-    { id: "BCA", name: "BCA", category: "virtual" },
-    { id: "BRI", name: "BRI", category: "virtual" },
-  ];
-
-  const handleMethodSelect = (methodId: string) => {
-    setSelectedMethod(methodId);
+  const handleMethodSelect = (methodCode: string) => {
+    setSelectedMethod(methodCode);
   };
+
+  const renderMethods = (groupName: string) => {
+    return methods
+      .filter((m) => m.group === groupName)
+      .map((m) => (
+        <PaymentOption
+          key={m.code}
+          name={m.name}
+          iconUrl={m.icon_url}
+          selected={selectedMethod === m.code}
+          onPress={() => handleMethodSelect(m.code)}
+        />
+      ));
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color="#007FFF" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -50,6 +74,7 @@ export default function PaymentMethodsScreen() {
         <Icon name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
 
+      {/* Icon Atas */}
       <View style={styles.iconContainer}>
         <View style={styles.outerCircle}>
           <View style={styles.innerCircle}>
@@ -69,43 +94,38 @@ export default function PaymentMethodsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Bayar Menggunakan</Text>
 
-        {/* QRIS */}
-        <Text style={styles.methodTitle}>QRIS</Text>
-        {qrisOptions.map((opt) => (
-          <PaymentOption
-            key={opt.id}
-            name={opt.name}
-            selected={selectedMethod === opt.id}
-            onPress={() => handleMethodSelect(opt.id)}
-          />
-        ))}
+        {/* Virtual Account */}
+        {renderMethods("Virtual Account").length > 0 && (
+          <>
+            <Text style={styles.methodTitle}>Virtual Account</Text>
+            {renderMethods("Virtual Account")}
+          </>
+        )}
 
         {/* E-Wallet */}
-        <Text style={styles.methodTitle}>E-Wallet</Text>
-        {ewalletOptions.map((opt) => (
-          <PaymentOption
-            key={opt.id}
-            name={opt.name}
-            selected={selectedMethod === opt.id}
-            onPress={() => handleMethodSelect(opt.id)}
-          />
-        ))}
+        {renderMethods("E-Wallet").length > 0 && (
+          <>
+            <Text style={styles.methodTitle}>E-Wallet</Text>
+            {renderMethods("E-Wallet")}
+          </>
+        )}
 
-        {/* Virtual Account */}
-        <Text style={styles.methodTitle}>Virtual Accounts</Text>
-        {virtualAccountOptions.map((opt) => (
-          <PaymentOption
-            key={opt.id}
-            name={opt.name}
-            selected={selectedMethod === opt.id}
-            onPress={() => handleMethodSelect(opt.id)}
-          />
-        ))}
+        {/* QRIS */}
+        {renderMethods("QRIS").length > 0 && (
+          <>
+            <Text style={styles.methodTitle}>QRIS</Text>
+            {renderMethods("QRIS")}
+          </>
+        )}
       </View>
 
       {/* Tombol Bayar */}
       <TouchableOpacity
-        style={styles.payButton}
+        style={[
+          styles.payButton,
+          { backgroundColor: selectedMethod ? "#007FFF" : "#9CA3AF" },
+        ]}
+        disabled={!selectedMethod}
         onPress={() =>
           navigation.navigate("PaymentDetails", {
             speed,
@@ -123,16 +143,21 @@ export default function PaymentMethodsScreen() {
 
 function PaymentOption({
   name,
+  iconUrl,
   selected,
   onPress,
 }: {
   name: string;
+  iconUrl: string;
   selected: boolean;
   onPress: () => void;
 }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.option}>
-      <Text style={styles.optionText}>{name}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Image source={{ uri: iconUrl }} style={{ width: 50, height: 15, marginRight: 15 }} />
+        <Text style={styles.optionText}>{name}</Text>
+      </View>
       <View
         style={[
           styles.radio,
@@ -233,7 +258,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
   },
   payButton: {
-    backgroundColor: "#007FFF",
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",

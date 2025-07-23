@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,34 +6,96 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
 const { width } = Dimensions.get("window");
 
 export default function PaymentSuccessScreen() {
   const navigation = useNavigation();
+  const route = useRoute<any>();
+  const { trxData } = route.params; // Data awal dari PaymentDetailsScreen
 
+  const [status, setStatus] = useState(trxData.status); // status awal Tripay
+  const [detail, setDetail] = useState(trxData); // update detail jika ada perubahan
+  const reference = trxData.reference; // reference transaksi
+
+  // Fungsi cek status ke API
+  const checkStatus = async () => {
+    try {
+      const res = await fetch(
+        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+      );
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        setStatus(json.data.status); // status PAID / UNPAID
+        setDetail(json.data); // update detail transaksi (amount, pay_code, dll)
+      }
+    } catch (err) {
+      console.log("Error cek status:", err);
+    }
+  };
+
+  // Auto refresh status setiap 5 detik
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.navigate("PaymentHistory" as never);
+    const interval = setInterval(() => {
+      checkStatus();
     }, 5000);
-    return () => clearTimeout(timer);
-  }, [navigation]);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const isPaid = status === "PAID";
 
   return (
     <View style={styles.container}>
-      {/* Success icon (SVG custom equivalent) */}
+      {/* Dynamic Icon */}
       <View style={styles.iconContainer}>
-        <Icon name="check-circle" size={128} color="#ECB43C" />
+        <Icon
+          name={isPaid ? "check-circle" : "clock"}
+          size={128}
+          color={isPaid ? "#4CAF50" : "#FF9800"}
+        />
       </View>
 
-      <Text style={styles.title}>Pembayaran Sukses</Text>
+      <Text style={styles.title}>
+        {isPaid ? "Pembayaran Sukses" : "Menunggu Pembayaran"}
+      </Text>
       <Text style={styles.description}>
-        Transaksi Anda telah berhasil diselesaikan. Untuk keterangan lebih
-        lanjut, periksa riwayat transaksi Anda.
+        {isPaid
+          ? "Transaksi Anda telah berhasil. Periksa detail pembayaran di bawah ini atau lihat riwayat transaksi Anda."
+          : "Transaksi Anda sedang menunggu pembayaran. Segera lakukan pembayaran sebelum waktu habis."}
       </Text>
 
+      {/* Detail Transaksi */}
+      <View style={styles.card}>
+        <Text style={styles.label}>Reference:</Text>
+        <Text style={styles.value}>{detail.merchant_ref}</Text>
+
+        <Text style={styles.label}>Metode:</Text>
+        <Text style={styles.value}>{detail.payment_name}</Text>
+
+        <Text style={styles.label}>Kode Pembayaran:</Text>
+        <Text style={styles.value}>{detail.pay_code}</Text>
+
+        <Text style={styles.label}>Jumlah:</Text>
+        <Text style={styles.value}>
+          Rp {detail.amount?.toLocaleString("id-ID")}
+        </Text>
+
+        <Text style={styles.label}>Status:</Text>
+        <Text
+          style={[
+            styles.value,
+            { color: isPaid ? "#4CAF50" : "#FF9800", fontWeight: "600" },
+          ]}
+        >
+          {status}
+        </Text>
+      </View>
+
+      {/* Tombol Manual ke Riwayat */}
       <TouchableOpacity
         onPress={() => navigation.navigate("PaymentHistory" as never)}
         style={styles.button}
@@ -49,25 +111,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF",
     alignItems: "center",
-    paddingTop: 80,
+    paddingTop: 40,
     paddingHorizontal: 24,
   },
   iconContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#000",
-    marginBottom: 16,
+    marginBottom: 12,
     textTransform: "capitalize",
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#000",
     textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  card: {
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    padding: 16,
+    width: width - 48,
     marginBottom: 32,
-    lineHeight: 24,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+    marginTop: 6,
+  },
+  value: {
+    fontSize: 14,
+    color: "#000",
+    marginBottom: 4,
   },
   button: {
     backgroundColor: "#007FFF",

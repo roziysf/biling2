@@ -89,7 +89,7 @@ export default function AdminScreen() {
     if (msg.includes("admin")) {
       return {
         response:
-          "Silakan hubungi admin kami via WhatsApp:\n[Klik untuk WhatsApp](https://wa.me/6281234567890)",
+          "Silakan hubungi admin kami via WhatsApp:\n[Klik untuk WhatsApp](https://wa.me/6287755224249)",
         followUp: ["Masalah teknis lainnya", "Kembali ke menu utama"],
       };
     }
