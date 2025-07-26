@@ -85,38 +85,43 @@ export default function PaymentHistoryScreen() {
               Tidak ada riwayat tagihan.
             </Text>
           ) : (
-            riwayat.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.card}
-                onPress={() =>
-                  navigation.navigate(
-                    "PaymentDetails2" as never,
-                    { reference: item.invoice } as never
-                  )
-                }
-              >
-                <Text style={styles.text}>
-                  <Text style={styles.label}>Periode</Text>: {item.bulan}/
-                  {item.tahun}
-                </Text>
-                <Text style={styles.text}>
-                  <Text style={styles.label}>Paket</Text>: {item.nama_paket}
-                </Text>
-                <Text style={styles.text}>
-                  <Text style={styles.label}>Jumlah</Text>: Rp.{" "}
-                  {parseInt(item.tagihan).toLocaleString("id-ID")}
-                </Text>
-                <Text style={styles.text}>
-                  <Text style={styles.label}>Status</Text>:{" "}
-                  {item.status === "LS" ? "Lunas" : "Belum Lunas"}
-                </Text>
-                <Text style={styles.text}>
-                  <Text style={styles.label}>Tanggal Bayar</Text>:{" "}
-                  {item.tgl_bayar === null ? "-" : item.tgl_bayar}
-                </Text>
-              </TouchableOpacity>
-            ))
+            riwayat.map((item, index) => {
+              const isPaid = item.status === "LS"; // true jika sudah lunas
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.card, isPaid && styles.cardDisabled]} // kalau lunas tampil pudar
+                  disabled={isPaid} // disable jika lunas
+                  onPress={() =>
+                    navigation.navigate(
+                      "PaymentDetails2" as never,
+                      { reference: item.invoice } as never
+                    )
+                  }
+                >
+                  <Text style={styles.text}>
+                    <Text style={styles.label}>Periode</Text>: {item.bulan}/
+                    {item.tahun}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.label}>Paket</Text>: {item.nama_paket}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.label}>Jumlah</Text>: Rp.{" "}
+                    {parseInt(item.tagihan).toLocaleString("id-ID")}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.label}>Status</Text>:{" "}
+                    {isPaid ? "Lunas" : "Belum Lunas"}
+                  </Text>
+                  <Text style={styles.text}>
+                    <Text style={styles.label}>Tanggal Bayar</Text>:{" "}
+                    {item.tgl_bayar === null ? "-" : item.tgl_bayar}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
           )}
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -174,6 +179,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+  },
+  cardDisabled: {
+    opacity: 0.5, // pudar jika sudah lunas
   },
   label: {
     fontWeight: "bold",

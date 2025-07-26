@@ -29,6 +29,7 @@ export default function InternetPackagesScreen() {
   const [paketData, setPaketData] = useState<Paket[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   // Ambil data user dari AsyncStorage
   useEffect(() => {
@@ -54,6 +55,32 @@ export default function InternetPackagesScreen() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Ambil data profile (paket aktif) dari API
+  useEffect(() => {
+    const loadProfileFromAPI = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem("user");
+        if (!userStr) throw new Error("Data login tidak ditemukan");
+
+        const userData = JSON.parse(userStr);
+        const id = userData?.pelanggan.id_pelanggan;
+        const no_hp = userData?.pelanggan.no_hp;
+
+        const url = `http://192.168.43.233/pkn_ldpp/Api/Profile.php?id_pelanggan=${id}&no_hp=${no_hp}`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          setProfile(result.data);
+        }
+      } catch (err) {
+        console.error("Gagal memuat profil:", err);
+      }
+    };
+
+    loadProfileFromAPI();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -72,10 +99,15 @@ export default function InternetPackagesScreen() {
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>DAFTAR PAKET{"\n"}INTERNET</Text>
-          {user && (
-            <Text style={styles.activePackage}>
-              Paket aktif: {user.paket.paket} ({parseInt(user.paket.tarif).toLocaleString("id-ID")})
-            </Text>
+          {profile && (
+           <Text style={styles.activePackage}>
+            Paket aktif: {profile?.paket?.paket ?? "-"} (
+            {profile?.paket?.tarif
+              ? parseInt(profile.paket.tarif).toLocaleString("id-ID")
+              : "0"}
+            )
+          </Text>
+
           )}
         </View>
       </View>
@@ -97,32 +129,32 @@ export default function InternetPackagesScreen() {
           </View>
 
           <View style={styles.statusCard}>
-  <View style={styles.statusRow}>
-    <View>
-      {user?.paket ? (
-        <>
-          <Text style={styles.statusTitle}>
-            Kamu sudah berlangganan paket:
-          </Text>
-          <Text style={styles.statusSubtitle}>
-            {user.paket.paket} - Rp.{parseInt(user.paket.tarif).toLocaleString("id-ID")}
-          </Text>
-        </>
-      ) : (
-        <>
-          <Text style={styles.statusTitle}>
-            Kamu belum punya internet nih
-          </Text>
-          <Text style={styles.statusSubtitle}>
-            Beli paket favorit anda di bawah ini !!
-          </Text>
-        </>
-      )}
-    </View>
-    <Text style={styles.emoji}>📡</Text>
-  </View>
-</View>
-
+            <View style={styles.statusRow}>
+              <View>
+                {profile?.paket ? (
+                  <>
+                    <Text style={styles.statusTitle}>
+                      Kamu sudah berlangganan paket:
+                    </Text>
+                    <Text style={styles.statusSubtitle}>
+                      {profile.paket.paket} - Rp.
+                      {parseInt(profile.paket.tarif).toLocaleString("id-ID")}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.statusTitle}>
+                      Kamu belum punya internet nih
+                    </Text>
+                    <Text style={styles.statusSubtitle}>
+                      Beli paket favorit anda di bawah ini !!
+                    </Text>
+                  </>
+                )}
+              </View>
+              <Text style={styles.emoji}>📡</Text>
+            </View>
+          </View>
 
           <Text style={styles.sectionTitle}>Spesial untuk anda</Text>
 

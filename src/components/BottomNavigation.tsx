@@ -10,40 +10,31 @@ export default function BottomNavigation() {
   const route = useRoute();
   const currentRoute = route.name;
 
-  let isDashboard = false;
   let isInternetPackages = false;
   let isPaymentHistory = false;
+  let isProfile = false;
+  let isAdmin = false;
 
-  if (currentRoute === "Dashboard") {
-    isDashboard = true;
-  } else if (currentRoute === "InternetPackages") {
+  if (currentRoute === "InternetPackages") {
     isInternetPackages = true;
   } else if (currentRoute === "PaymentHistory") {
     isPaymentHistory = true;
+  } else if (currentRoute === "Profile") {
+    isProfile = true;
+  } else if (currentRoute === "AdminScreen") {
+    isAdmin = true;
   }
 
   return (
     <View style={styles.bottomNavWrapper}>
       <View style={styles.bottomNav}>
-        {/* Home */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Dashboard" as never)}
-          style={isDashboard ? styles.activeCircle : undefined}
-        >
-          <Feather
-            name="home"
-            size={24}
-            color={isDashboard ? "#007FFF" : "#FFF"}
-          />
-        </TouchableOpacity>
-
-        {/* Paket */}
+        {/* Internet Packages (sebagai menu utama) */}
         <TouchableOpacity
           onPress={() => navigation.navigate("InternetPackages" as never)}
           style={isInternetPackages ? styles.activeCircle : undefined}
         >
           <Feather
-            name="file-text"
+            name="home" // diganti ikon "home" agar terasa sebagai menu utama
             size={24}
             color={isInternetPackages ? "#007FFF" : "#FFF"}
           />
@@ -58,6 +49,30 @@ export default function BottomNavigation() {
             name="clock"
             size={24}
             color={isPaymentHistory ? "#007FFF" : "#FFF"}
+          />
+        </TouchableOpacity>
+
+        {/* Profile */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Profile" as never)}
+          style={isProfile ? styles.activeCircle : undefined}
+        >
+          <Feather
+            name="user"
+            size={24}
+            color={isProfile ? "#007FFF" : "#FFF"}
+          />
+        </TouchableOpacity>
+
+        {/* Admin */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("AdminScreen" as never)}
+          style={isAdmin ? styles.activeCircle : undefined}
+        >
+          <Feather
+            name="shield"
+            size={24}
+            color={isAdmin ? "#007FFF" : "#FFF"}
           />
         </TouchableOpacity>
       </View>
@@ -81,7 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     justifyContent: "space-between",
     alignItems: "center",
-    width: width * 0.7,
+    width: width * 0.7, // kembali normal karena menu berkurang
     borderWidth: 1,
     borderColor: "#FFF",
   },

@@ -45,7 +45,7 @@ export default function AdminScreen() {
     if (msg.includes("beli") || msg.includes("paket")) {
       return {
         response:
-          "Untuk membeli paket, masuk ke halaman 'Daftar Paket', pilih paket yang kamu inginkan, lalu lanjutkan ke pembayaran.",
+          "Untuk membeli paket, masuk Home, pilih paket yang kamu inginkan, lalu lanjutkan ke pembayaran.",
         followUp: ["Cara bayar", "Cek kuota", "Status pembayaran"],
       };
     }
@@ -53,7 +53,7 @@ export default function AdminScreen() {
     if (msg.includes("bayar")) {
       return {
         response:
-          "Berikut langkah-langkah cara bayar:\n1. Pilih paket terlebih dahulu\n2. Pilih metode pembayaran (VA atau e-wallet)\n3. Lakukan pembayaran sesuai instruksi\n4. Tunggu hingga status aktif muncul.",
+          "Berikut langkah-langkah cara bayar:\n1. Pilih paket terlebih dahulu\n2. Pilih metode pembayaran VA\n3. Lakukan pembayaran sesuai instruksi\n4. Tunggu hingga status aktif muncul.",
         followUp: ["Status pembayaran", "VA bisa berubah?"],
       };
     }
@@ -61,7 +61,7 @@ export default function AdminScreen() {
     if (msg.includes("kuota") || msg.includes("masa aktif")) {
       return {
         response:
-          "Kamu bisa cek di menu Home lalu ke 'Daftar Paket'. Di sana ada keterangan paket aktif dan masa aktifnya.\nKalau belum ada paket, yuk checkout sekalian!",
+          "Kamu bisa cek di menu Home atau Profile. Di Home ada keterangan paket aktif dan masa aktifnya.\ Kalau belum ada paket, yuk checkout sekalian!",
         followUp: ["Cara beli paket", "Metode pembayaran", "Hubungi admin"],
       };
     }

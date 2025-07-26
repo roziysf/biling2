@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
 const { width } = Dimensions.get("window");
@@ -21,38 +21,42 @@ export default function PaymentSuccessScreen() {
   const reference = trxData.reference; // reference transaksi
 
   // Fungsi cek status ke API
-  // Fungsi cek status ke API
-const checkStatus = async () => {
-  try {
-    const res = await fetch(
-      `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
-    );
-    const json = await res.json();
+  const checkStatus = async () => {
+    try {
+      const res = await fetch(
+        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+      );
+      const json = await res.json();
 
-    if (json.success) {
-      console.log("✅ Update status dari API:", json);
+      if (json.success) {
+        console.log("✅ Update status dari API:", json);
 
-      if (json.tripay) {
-        setStatus(json.status); // PAID / UNPAID
-        setDetail(json.tripay); // update detail transaksi Tripay terbaru
+        if (json.tripay) {
+          setStatus(json.status); // PAID / UNPAID
+          setDetail(json.tripay); // update detail transaksi Tripay terbaru
+        }
+      } else {
+        console.log("⚠️ Gagal cek status:", json.message);
       }
-    } else {
-      console.log("⚠️ Gagal cek status:", json.message);
+    } catch (err) {
+      console.log("❌ Error cek status:", err);
     }
-  } catch (err) {
-    console.log("❌ Error cek status:", err);
-  }
-};
+  };
 
+  // Auto refresh status hanya saat screen aktif
+  useFocusEffect(
+    useCallback(() => {
+      console.log("✅ Screen PaymentSuccess aktif, mulai cek status...");
+      const interval = setInterval(() => {
+        checkStatus();
+      }, 5000);
 
-  // Auto refresh status setiap 5 detik
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkStatus();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+      return () => {
+        console.log("⏹ Screen PaymentSuccess tidak aktif, hentikan interval.");
+        clearInterval(interval);
+      };
+    }, [])
+  );
 
   const isPaid = status === "PAID";
 
@@ -80,9 +84,6 @@ const checkStatus = async () => {
       <View style={styles.card}>
         <Text style={styles.label}>Trx:</Text>
         <Text style={styles.value}>{detail.merchant_ref}</Text>
-        {/* <Text style={styles.label}>Reference:</Text>
-        
-        <Text style={styles.value}>{detail.reference}</Text> */}
 
         <Text style={styles.label}>Metode:</Text>
         <Text style={styles.value}>{detail.payment_name}</Text>

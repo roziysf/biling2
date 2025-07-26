@@ -96,9 +96,12 @@ export default function ProfileScreen() {
             <View style={styles.detailItem}>
               <Text style={styles.label}>Paket</Text>
               <Text style={styles.value}>
-                {paket.paket} - Rp. {paket.tarif}
+                {paket
+                  ? `${paket.paket} - Rp. ${parseInt(paket.tarif).toLocaleString("id-ID")}`
+                  : "Belum ada paket"}
               </Text>
             </View>
+
 
             <View style={styles.detailItem}>
               <Text style={styles.label}>Status</Text>

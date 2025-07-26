@@ -42,8 +42,8 @@ export default function LoginScreen() {
         // Simpan data ke session
         await AsyncStorage.setItem("user", JSON.stringify(result.data));
 
-        // Navigasi ke Dashboard
-        navigation.navigate("Dashboard" as never);
+        // Navigasi ke InternetPackages
+        navigation.navigate("InternetPackages" as never);
       } else {
         setShowError(true);
       }
