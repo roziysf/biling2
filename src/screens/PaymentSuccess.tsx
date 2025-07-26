@@ -21,21 +21,29 @@ export default function PaymentSuccessScreen() {
   const reference = trxData.reference; // reference transaksi
 
   // Fungsi cek status ke API
-  const checkStatus = async () => {
-    try {
-      const res = await fetch(
-        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
-      );
-      const json = await res.json();
+  // Fungsi cek status ke API
+const checkStatus = async () => {
+  try {
+    const res = await fetch(
+      `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+    );
+    const json = await res.json();
 
-      if (json.success && json.data) {
-        setStatus(json.data.status); // status PAID / UNPAID
-        setDetail(json.data); // update detail transaksi (amount, pay_code, dll)
+    if (json.success) {
+      console.log("✅ Update status dari API:", json);
+
+      if (json.tripay) {
+        setStatus(json.status); // PAID / UNPAID
+        setDetail(json.tripay); // update detail transaksi Tripay terbaru
       }
-    } catch (err) {
-      console.log("Error cek status:", err);
+    } else {
+      console.log("⚠️ Gagal cek status:", json.message);
     }
-  };
+  } catch (err) {
+    console.log("❌ Error cek status:", err);
+  }
+};
+
 
   // Auto refresh status setiap 5 detik
   useEffect(() => {
@@ -70,8 +78,11 @@ export default function PaymentSuccessScreen() {
 
       {/* Detail Transaksi */}
       <View style={styles.card}>
-        <Text style={styles.label}>Reference:</Text>
+        <Text style={styles.label}>Trx:</Text>
         <Text style={styles.value}>{detail.merchant_ref}</Text>
+        {/* <Text style={styles.label}>Reference:</Text>
+        
+        <Text style={styles.value}>{detail.reference}</Text> */}
 
         <Text style={styles.label}>Metode:</Text>
         <Text style={styles.value}>{detail.payment_name}</Text>

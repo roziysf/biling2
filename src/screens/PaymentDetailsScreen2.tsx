@@ -11,78 +11,67 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Clipboard from "@react-native-clipboard/clipboard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Feather";
 
-export default function PaymentDetailsScreen() {
+export default function PaymentDetails2() {
   const navigation = useNavigation();
   const route = useRoute<any>();
-  const { speed, price, duration, method } = route.params;
+  const { reference } = route.params; // dikirim dari PaymentHistoryScreen
 
   const [loading, setLoading] = useState(true);
   const [trxData, setTrxData] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
   const [openInstructions, setOpenInstructions] = useState<{ [key: string]: boolean }>({});
 
-  // ✅ Ambil data user dari AsyncStorage
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem("user");
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          console.log("✅ User dari AsyncStorage:", parsedUser);
-          setUser(parsedUser);
-        } else {
-          console.log("⚠️ Tidak ada data user di AsyncStorage");
+  // ✅ Ambil data transaksi pertama kali
+  const fetchTrxData = async () => {
+    try {
+      const res = await fetch(
+        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+      );
+      const json = await res.json();
+
+      if (json.success && json.tripay) {
+        setTrxData(json.tripay);
+
+        // ✅ Jika sudah PAID, langsung redirect
+        if (json.tripay.status === "PAID") {
+          navigation.navigate("PaymentSuccess" as never, { trxData: json.tripay });
         }
-      } catch (error) {
-        console.error("❌ Gagal membaca user dari AsyncStorage:", error);
+      } else {
+        Alert.alert("Gagal", json.message || "Data transaksi tidak ditemukan");
       }
-    };
-    fetchUser();
-  }, []);
-
-  // ✅ Jalankan fetch transaksi HANYA setelah user tersedia
-  useEffect(() => {
-    if (!user) return; // Jika user belum tersedia, jangan fetch dulu
-
-    const cleanAmount = formatPriceToNumber(price);
-    const url = `http://192.168.43.233/pkn_ldpp/Api/payment.php?method=${method}&merchant_ref=TX${Date.now()}&amount=${cleanAmount}&customer_name=${user.pelanggan.nama}&customer_email=${user.pelanggan.email}&customer_phone=${user.pelanggan.no_hp}&iduser=${user.pelanggan.id_pelanggan}`;
-
-    console.log("🔗 Request ke API:", url);
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) {
-          console.log("✅ Response API Tripay:", json.tripay?.data || json.data);
-          setTrxData(json.tripay?.data || json.data);
-        } else {
-          Alert.alert("Gagal", json.message || "Gagal membuat transaksi");
-        }
-      })
-      .catch((err) => {
-        console.error("❌ Error API:", err);
-        Alert.alert("Error", "Tidak dapat menghubungi server");
-      })
-      .finally(() => setLoading(false));
-  }, [user, method]);
-
-  const formatPriceToNumber = (price: string): number => {
-    return Number(price.replace(/[^0-9]/g, ""));
+    } catch (error) {
+      console.error("❌ Error API:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // ✅ Panggil API pertama kali
+  useEffect(() => {
+    fetchTrxData();
+  }, [reference]);
+
+  // ✅ Auto refresh status setiap 5 detik
+
 
   const copyToClipboard = (text: string) => {
     Clipboard.setString(text);
     Alert.alert("Disalin", "Nomor Virtual Account telah disalin ke clipboard");
   };
 
+  const toggleInstruction = (title: string) => {
+    setOpenInstructions((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
   if (loading) {
     return (
       <View style={[styles.safeArea, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color="#007FFF" />
-        <Text>Memproses transaksi...</Text>
+        <Text>Memuat detail transaksi...</Text>
       </View>
     );
   }
@@ -95,23 +84,15 @@ export default function PaymentDetailsScreen() {
     );
   }
 
-  const toggleInstruction = (title: string) => {
-    setOpenInstructions((prev) => ({
-      ...prev,
-      [title]: !prev[title],
-    }));
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Paket Info */}
+        {/* Info Transaksi */}
         <View style={styles.card}>
-          <Text style={styles.cardText}>Nama : {speed}</Text>
-          <Text style={styles.cardText}>Paket : {price}</Text>
-          <Text style={styles.cardText}>Durasi : {duration}</Text>
           <Text style={styles.cardText}>Metode : {trxData.payment_name}</Text>
           <Text style={styles.cardText}>Total Bayar : Rp {trxData.amount.toLocaleString()}</Text>
+          <Text style={styles.cardText}>Status : {trxData.status}</Text>
+          <Text style={styles.cardText}>Reference : {trxData.merchant_ref}</Text>
         </View>
 
         {/* Kode Pembayaran */}
@@ -124,11 +105,14 @@ export default function PaymentDetailsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Instructions */}
+        {/* Cara Pembayaran */}
         <Text style={styles.sectionTitle}>Cara Pembayaran</Text>
         {trxData.instructions?.map((instruction: any, idx: number) => (
           <View key={idx}>
-            <TouchableOpacity onPress={() => toggleInstruction(instruction.title)} style={styles.toggleHeader}>
+            <TouchableOpacity
+              onPress={() => toggleInstruction(instruction.title)}
+              style={styles.toggleHeader}
+            >
               <Text style={styles.instructionTitle}>{instruction.title}</Text>
               <Icon
                 name={openInstructions[instruction.title] ? "chevron-up" : "chevron-down"}
@@ -150,15 +134,15 @@ export default function PaymentDetailsScreen() {
           </View>
         ))}
 
-        {/* Tombol */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("PaymentSuccess" as never, { trxData })}
-            style={styles.submitButton}
-          >
-            <Text style={styles.submitText}>Konfirmasi Pembayaran</Text>
-          </TouchableOpacity>
-        </View>
+         {/* Tombol */}
+               <View style={styles.buttonContainer}>
+                 <TouchableOpacity
+                   onPress={() => navigation.navigate("PaymentSuccess" as never, { trxData })}
+                   style={styles.submitButton}
+                 >
+                   <Text style={styles.submitText}>Konfirmasi Pembayaran</Text>
+                 </TouchableOpacity>
+               </View>
       </ScrollView>
     </SafeAreaView>
   );

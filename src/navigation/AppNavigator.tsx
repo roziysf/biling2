@@ -12,6 +12,7 @@ import PaymentHistoryScreen from '../screens/PaymentHistoryScreen';
 import PaymentMethodsScreen from '../screens/PaymentMethodsScreen';
 import PaymentSuccessScreen from '../screens/PaymentSuccess';
 import AdminScreen from '../screens/AdminScreen';
+import PaymentDetailsScreen2 from '../screens/PaymentDetailsScreen2';
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   PaymentMetods:undefined
   PaymentSuccess:undefined
   AdminScreen:undefined
+  PaymentDetails2:undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,6 +39,7 @@ const AppNavigator = () => {
         <Stack.Screen name="InternetPackages" component={InternetPackagesScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="PaymentDetails" component={PaymentDetailsScreen} />
+        <Stack.Screen name="PaymentDetails2" component={PaymentDetailsScreen2} />
         <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
         <Stack.Screen name="PaymentMetods" component={PaymentMethodsScreen} />
         <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />

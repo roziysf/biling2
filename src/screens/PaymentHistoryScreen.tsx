@@ -7,10 +7,12 @@ import {
   Dimensions,
   SafeAreaView,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomNavigation from "../components/BottomNavigation";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -23,12 +25,14 @@ interface Tagihan {
   tgl_bayar: string;
   nama_paket: string;
   tarif: string;
+  invoice: string; // pastikan field ini ada dari API
 }
 
 export default function PaymentHistoryScreen() {
   const [user, setUser] = useState<any>(null);
   const [riwayat, setRiwayat] = useState<Tagihan[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchRiwayat = async () => {
@@ -63,15 +67,17 @@ export default function PaymentHistoryScreen() {
           <View style={styles.userIcon}>
             <Icon name="user" size={20} color="#FFF" />
           </View>
-          <Text style={styles.userName}>
-            {user ? user.nama : "Memuat..."}
-          </Text>
+          <Text style={styles.userName}>{user ? user.nama : "Memuat..."}</Text>
         </View>
         <Text style={styles.headerTitle}>RIWAYAT PEMBAYARAN</Text>
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#007FFF" />
+        <ActivityIndicator
+          style={{ marginTop: 20 }}
+          size="large"
+          color="#007FFF"
+        />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {riwayat.length === 0 ? (
@@ -80,15 +86,26 @@ export default function PaymentHistoryScreen() {
             </Text>
           ) : (
             riwayat.map((item, index) => (
-              <View key={index} style={styles.card}>
+              <TouchableOpacity
+                key={index}
+                style={styles.card}
+                onPress={() =>
+                  navigation.navigate(
+                    "PaymentDetails2" as never,
+                    { reference: item.invoice } as never
+                  )
+                }
+              >
                 <Text style={styles.text}>
-                  <Text style={styles.label}>Periode</Text>: {item.bulan}/{item.tahun}
+                  <Text style={styles.label}>Periode</Text>: {item.bulan}/
+                  {item.tahun}
                 </Text>
                 <Text style={styles.text}>
                   <Text style={styles.label}>Paket</Text>: {item.nama_paket}
                 </Text>
                 <Text style={styles.text}>
-                  <Text style={styles.label}>Jumlah</Text>: Rp. {parseInt(item.tagihan).toLocaleString("id-ID")}
+                  <Text style={styles.label}>Jumlah</Text>: Rp.{" "}
+                  {parseInt(item.tagihan).toLocaleString("id-ID")}
                 </Text>
                 <Text style={styles.text}>
                   <Text style={styles.label}>Status</Text>:{" "}
@@ -96,12 +113,11 @@ export default function PaymentHistoryScreen() {
                 </Text>
                 <Text style={styles.text}>
                   <Text style={styles.label}>Tanggal Bayar</Text>:{" "}
-                  {item.tgl_bayar === "0000-00-00" ? "-" : item.tgl_bayar}
+                  {item.tgl_bayar === null ? "-" : item.tgl_bayar}
                 </Text>
-              </View>
+              </TouchableOpacity>
             ))
           )}
-
           <View style={{ height: 100 }} />
         </ScrollView>
       )}
