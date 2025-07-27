@@ -140,6 +140,10 @@ export default function InternetPackagesScreen() {
                       {profile.paket.paket} - Rp.
                       {parseInt(profile.paket.tarif).toLocaleString("id-ID")}
                     </Text>
+                    <Text style={styles.statusSubtitle}>
+                      Kurang  <Text> </Text>
+                      {parseInt(profile.tagihan.sisa_hari).toLocaleString("id-ID")}Hari
+                    </Text>
                   </>
                 ) : (
                   <>
