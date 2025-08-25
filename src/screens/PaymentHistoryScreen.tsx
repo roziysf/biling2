@@ -44,7 +44,7 @@ export default function PaymentHistoryScreen() {
 
       try {
         const response = await fetch(
-          `http://192.168.43.233/pkn_ldpp/Api/riwayat.php?id_pelanggan=${parsed.pelanggan.id_pelanggan}`
+          `https://rozi.isnupasuruan.or.id/Api/riwayat.php?id_pelanggan=${parsed.pelanggan.id_pelanggan}`
         );
         const result = await response.json();
         if (result.status === "success") {

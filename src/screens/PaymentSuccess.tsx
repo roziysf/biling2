@@ -24,7 +24,7 @@ export default function PaymentSuccessScreen() {
   const checkStatus = async () => {
     try {
       const res = await fetch(
-        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+        `https://rozi.isnupasuruan.or.id/Api/trx.php?reference=${reference}`
       );
       const json = await res.json();
 

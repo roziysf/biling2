@@ -28,7 +28,7 @@ export default function ProfileScreen() {
         const no_hp = user?.pelanggan.no_hp;
         console.log(id)
 
-        const url = `http://192.168.43.233/pkn_ldpp/Api/Profile.php?id_pelanggan=${id}&no_hp=${no_hp}`;
+        const url = `https://rozi.isnupasuruan.or.id/Api/Profile.php?id_pelanggan=${id}&no_hp=${no_hp}`;
         const response = await fetch(url);
         const result = await response.json();
         console.log(result)

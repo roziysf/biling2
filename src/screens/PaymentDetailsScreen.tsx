@@ -48,7 +48,7 @@ export default function PaymentDetailsScreen() {
     if (!user) return; // Jika user belum tersedia, jangan fetch dulu
 
     const cleanAmount = formatPriceToNumber(price);
-    const url = `http://192.168.43.233/pkn_ldpp/Api/payment.php?method=${method}&merchant_ref=TX${Date.now()}&amount=${cleanAmount}&customer_name=${user.pelanggan.nama}&customer_email=${user.pelanggan.email}&customer_phone=${user.pelanggan.no_hp}&iduser=${user.pelanggan.id_pelanggan}`;
+    const url = `https://rozi.isnupasuruan.or.id/Api/payment.php?method=${method}&merchant_ref=TX${Date.now()}&amount=${cleanAmount}&customer_name=${user.pelanggan.nama}&customer_email=${user.pelanggan.email}&customer_phone=${user.pelanggan.no_hp}&iduser=${user.pelanggan.id_pelanggan}`;
 
     console.log("🔗 Request ke API:", url);
 

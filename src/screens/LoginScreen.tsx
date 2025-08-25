@@ -22,7 +22,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.43.233/pkn_ldpp/Api/login.php", {
+      const response = await fetch("https://rozi.isnupasuruan.or.id/Api/login.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

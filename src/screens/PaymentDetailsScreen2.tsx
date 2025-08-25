@@ -26,7 +26,7 @@ export default function PaymentDetails2() {
   const fetchTrxData = async () => {
     try {
       const res = await fetch(
-        `http://192.168.43.233/pkn_ldpp/Api/trx.php?reference=${reference}`
+        `https://rozi.isnupasuruan.or.id/Api/trx.php?reference=${reference}`
       );
       const json = await res.json();
 

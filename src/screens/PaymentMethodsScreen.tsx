@@ -30,7 +30,7 @@ export default function PaymentMethodsScreen() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    fetch("http://192.168.43.233/pkn_ldpp/Api/metods.php")
+    fetch("https://rozi.isnupasuruan.or.id/Api/metods.php")
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data)) {
