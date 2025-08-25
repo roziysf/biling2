@@ -44,7 +44,7 @@ export default function InternetPackagesScreen() {
 
   // Ambil data paket dari API
   useEffect(() => {
-    fetch("http://192.168.43.233/pkn_ldpp/Api/paket.php")
+    fetch("https://rozi.isnupasuruan.or.id/Api/paket.php")
       .then((res) => res.json())
       .then((result) => {
         if (result.status === "success") {
